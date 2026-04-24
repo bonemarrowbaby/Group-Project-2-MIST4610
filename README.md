@@ -221,11 +221,12 @@ Query 1 lists the ship country, product description, and total revenue for all p
 
 ```sql
 SELECT ORDERS.Orders_Ship_Country,
-       ORDERLINE.product_description,
+       PRODUCT.Product_Description,
        FORMAT(SUM(ORDERLINE.OrderLine_Quantity * ORDERLINE.OrderLine_Unit_Price * (1 - ORDERLINE.OrderLine_Discount)), 2) AS Total_Revenue
-FROM ORDERLINE, ORDERS
+FROM ORDERLINE, ORDERS, PRODUCT
 WHERE ORDERLINE.ORDERS_Orders_Id = ORDERS.Orders_Id
-GROUP BY ORDERS.Orders_Ship_Country, ORDERLINE.product_description
+AND ORDERLINE.PRODUCT_Product_Id = PRODUCT.Product_Id
+GROUP BY ORDERS.Orders_Ship_Country, PRODUCT.Product_Description
 ORDER BY ORDERS.Orders_Ship_Country, SUM(ORDERLINE.OrderLine_Quantity * ORDERLINE.OrderLine_Unit_Price * (1 - ORDERLINE.OrderLine_Discount)) DESC;
 ```
 
@@ -336,7 +337,6 @@ SELECT PRODUCT.Product_Description,
            ELSE 'Low Margin'
        END AS Margin_Label
 FROM PRODUCT
-WHERE PRODUCT.Parent_Product_Id IS NULL
 ORDER BY PRODUCT.Product_List_Price - PRODUCT.Product_Cost DESC;
 ```
 
