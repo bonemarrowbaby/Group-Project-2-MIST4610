@@ -219,7 +219,30 @@ WHERE Product_Cost REGEXP '^[A-Z]';
 
 Query 1 lists the ship country, product description, and total revenue for all products, grouped by country and ordered by total revenue in descending order.
 
-![Query1](query1.png)
+```sql
+SELECT ORDERS.Orders_Ship_Country,
+       ORDERLINE.product_description,
+       FORMAT(SUM(ORDERLINE.OrderLine_Quantity * ORDERLINE.OrderLine_Unit_Price * (1 - ORDERLINE.OrderLine_Discount)), 2) AS Total_Revenue
+FROM ORDERLINE, ORDERS
+WHERE ORDERLINE.ORDERS_Orders_Id = ORDERS.Orders_Id
+GROUP BY ORDERS.Orders_Ship_Country, ORDERLINE.product_description
+ORDER BY ORDERS.Orders_Ship_Country, SUM(ORDERLINE.OrderLine_Quantity * ORDERLINE.OrderLine_Unit_Price * (1 - ORDERLINE.OrderLine_Discount)) DESC;
+```
+
+> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query1](query1.png)`
+
+| Ship Country | Product | Total Revenue |
+|---|---|---|
+| CA | EchoWave Headphones | $814.39 |
+| CA | Summit Laptop Stand | $566.01 |
+| CA | Pulse USB-C Hub | $485.41 |
+| CA | Aurora Mechanical Keyboard | $337.46 |
+| CA | City Beanie | $309.72 |
+| US | Aurora Mechanical Keyboard | $1,099.53 |
+| US | EchoWave Headphones | $918.93 |
+| US | Halo Desk Lamp | $641.89 |
+| US | ClickStorm Gaming Mouse | $561.59 |
+| US | Northline Crewneck | $552.41 |
 
 Query 1 allows Northline managers to identify which products are driving the most revenue in each market. Since the company sells to both the US and Canada, understanding regional performance helps the business prioritize inventory, marketing efforts, and vendor reorders based on where each product is actually selling.
 
@@ -227,9 +250,35 @@ Query 1 allows Northline managers to identify which products are driving the mos
 
 ### Required Query 2 — Employee Order Counts Compared to Manager Peers
 
-Query 2 lists the manager reference, employee reference, and total number of orders handled for each employee, grouped by manager and ordered by order count in descending order.
+Query 2 lists the manager reference, employee reference, and total number of distinct orders handled for each employee, grouped by manager and ordered by order count in descending order.
 
-![Query2](query2.png)
+```sql
+SELECT mgr.Employee_ref AS Manager_Ref,
+       emp.Employee_ref AS Employee_Ref,
+       COUNT(DISTINCT ORDERS.Orders_Id) AS Orders_Handled
+FROM EMPLOYEE emp, EMPLOYEE mgr, ORDERS
+WHERE emp.Employee_Manager_Id = mgr.Employee_Id
+AND ORDERS.EMPLOYEE_Employee_Id = emp.Employee_Id
+GROUP BY mgr.Employee_ref, emp.Employee_ref
+ORDER BY mgr.Employee_ref, Orders_Handled DESC;
+```
+
+> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query2](query2.png)`
+
+| Manager | Employee | Orders Handled |
+|---|---|---|
+| EMC-M01 | EMC-401 | 13 |
+| EMC-M01 | EMC-402 | 6 |
+| EMC-M02 | EMC-403 | 12 |
+| EMC-M03 | EMC-501 | 18 |
+| EMC-M03 | EMC-502 | 8 |
+| EMU-M01 | EMU-102 | 13 |
+| EMU-M01 | EMU-101 | 4 |
+| EMU-M02 | EMU-103 | 8 |
+| EMU-M03 | EMU-202 | 19 |
+| EMU-M03 | EMU-201 | 14 |
+| EMU-M04 | EMU-302 | 12 |
+| EMU-M04 | EMU-301 | 10 |
 
 Query 2 allows Northline managers to see how each employee's order volume stacks up against coworkers who report to the same manager. This helps identify top performers and flag employees who may need additional support or coaching, while giving managers a fair peer comparison within their own teams.
 
@@ -239,7 +288,27 @@ Query 2 allows Northline managers to see how each employee's order volume stacks
 
 Query 3 lists each vendor name, the number of distinct categories they supply, and the category names for all vendors whose products span more than one category.
 
-![Query3](query3.png)
+```sql
+SELECT VENDOR.Vendor_Nm,
+       COUNT(DISTINCT CATEGORY.Category_Id) AS Num_Categories,
+       GROUP_CONCAT(DISTINCT CATEGORY.Category_Nm ORDER BY CATEGORY.Category_Nm SEPARATOR ', ') AS Categories
+FROM VENDOR, PRODUCT, CATEGORY
+WHERE PRODUCT.VENDOR_Vendor_Id = VENDOR.Vendor_Id
+AND PRODUCT.CATEGORY_Category_Id = CATEGORY.Category_Id
+GROUP BY VENDOR.Vendor_Nm
+HAVING COUNT(DISTINCT CATEGORY.Category_Id) > 1
+ORDER BY Num_Categories DESC;
+```
+
+> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query3](query3.png)`
+
+| Vendor | # Categories | Categories |
+|---|---|---|
+| Maple Supply | 4 | Accessories, Lifestyle, School, Tech |
+| Urban Source | 4 | Accessories, Desk Setup, Lifestyle, School |
+| Polar Tech | 3 | Accessories, Audio, Desk Setup |
+| Vendor North | 3 | Accessories, Desk Setup, Tech |
+| Northern Loom | 2 | Apparel, Lifestyle |
 
 Query 3 allows Northline managers to identify which vendors are supplying products across multiple categories. These vendors represent key strategic relationships for the business and could be prioritized for volume negotiations or consolidated purchasing agreements.
 
@@ -247,74 +316,63 @@ Query 3 allows Northline managers to identify which vendors are supplying produc
 
 ### Additional Query 1 — Return Rate by Product Category
 
-Query 1 lists each product category along with the total number of order lines, the number of returned lines, and the return rate percentage. A CASE statement is used to count returned lines, and FORMAT() displays the rate to two decimal places. Results are ordered from highest to lowest return rate.
+Query 1 lists each product category and the number of order lines that were returned, using a CASE statement to count returns. Results are ordered from highest to lowest return count.
 
 ```sql
 SELECT CATEGORY.Category_Nm,
-       COUNT(ORDERLINE.OrderLine_Id) AS Total_Lines,
-       COUNT(CASE WHEN ORDERLINE.OrderLine_Return_Flag = 'Y' THEN 1 END) AS Returned_Lines,
-       FORMAT(COUNT(CASE WHEN ORDERLINE.OrderLine_Return_Flag = 'Y' THEN 1 END) * 100.0
-           / COUNT(ORDERLINE.OrderLine_Id), 2) AS Return_Rate_Pct
+       COUNT(CASE WHEN ORDERLINE.OrderLine_Return_Flag = 'Y' THEN 1 END) AS Returned_Lines
 FROM ORDERLINE, PRODUCT, CATEGORY
 WHERE ORDERLINE.PRODUCT_Product_Id = PRODUCT.Product_Id
 AND PRODUCT.CATEGORY_Category_Id = CATEGORY.Category_Id
 GROUP BY CATEGORY.Category_Nm
-ORDER BY Return_Rate_Pct DESC;
+ORDER BY Returned_Lines DESC;
 ```
 
 ![Query4](query4.png)
 
-Query 1 allows Northline managers to identify which product categories have the highest return rates. A spike in returns within a specific category may signal quality issues, inaccurate product descriptions, or fulfillment problems, helping managers prioritize vendor conversations and merchandising reviews.
+Query 1 allows Northline managers to see which product categories are being returned the most. This helps identify potential quality or fulfillment issues so managers know where to focus their attention.
 
 ---
 
-### Additional Query 2 — Average Discount by Customer Type and Country
+### Additional Query 2 — Average Discount by Customer Type
 
-Query 2 lists each customer type and ship country combination along with the average discount rate and total order lines in that group. The IF() function labels each group as "Discounted" if the average discount rate is greater than zero, or "No Discount" otherwise. Results are ordered by customer type and country.
+Query 2 lists each customer type along with the average discount rate applied to their orders. The IF() function labels each group as "Discounted" if the average discount is greater than zero, or "No Discount" otherwise.
 
 ```sql
 SELECT BUYER.Customer_Type,
-       ORDERS.Orders_Ship_Country,
-       FORMAT(AVG(ORDERLINE.OrderLine_Discount), 4) AS Avg_Discount_Rate,
-       COUNT(ORDERLINE.OrderLine_Id) AS Line_Count,
+       FORMAT(AVG(ORDERLINE.OrderLine_Discount), 2) AS Avg_Discount_Rate,
        IF(AVG(ORDERLINE.OrderLine_Discount) > 0, 'Discounted', 'No Discount') AS Discount_Status
 FROM ORDERLINE, ORDERS, BUYER
 WHERE ORDERLINE.ORDERS_Orders_Id = ORDERS.Orders_Id
 AND ORDERS.CUSTOMER_Customer_Id = BUYER.Customer_Id
-GROUP BY BUYER.Customer_Type, ORDERS.Orders_Ship_Country
-ORDER BY BUYER.Customer_Type, ORDERS.Orders_Ship_Country;
+GROUP BY BUYER.Customer_Type
+ORDER BY Avg_Discount_Rate DESC;
 ```
 
 ![Query5](query5.png)
 
-Query 2 allows Northline managers to see whether discount policies are being applied consistently across customer segments and regions. If Student customers in Canada are receiving noticeably lower discounts than their US counterparts, it may point to an inconsistency in how promotions were entered at the time of sale.
+Query 2 allows Northline managers to see which customer types are receiving the highest average discounts. This helps ensure discount policies are being applied fairly and consistently across all customer segments.
 
 ---
 
-### Additional Query 3 — Top Products by Gross Margin
+### Additional Query 3 — Product Cost vs Price Label
 
-Query 3 lists each base product along with its category, vendor, list price, cost, and gross margin formatted to two decimal places. A CASE statement categorizes each product as "High Margin", "Medium Margin", or "Low Margin" based on the margin percentage. Only base products are included by filtering out variants where Parent_Product_Id is not null. Results are ordered from highest to lowest gross margin.
+Query 3 lists each product's name, cost, and list price, and uses a CASE statement to label it as "High Margin", "Medium Margin", or "Low Margin" based on how much profit it generates per unit.
 
 ```sql
-SELECT PRODUCT.Product_Sku,
-       PRODUCT.Product_Description,
-       CATEGORY.Category_Nm,
-       VENDOR.Vendor_Nm,
-       FORMAT(PRODUCT.Product_List_Price, 2) AS List_Price,
+SELECT PRODUCT.Product_Description,
        FORMAT(PRODUCT.Product_Cost, 2) AS Cost,
-       FORMAT(PRODUCT.Product_List_Price - PRODUCT.Product_Cost, 2) AS Gross_Margin,
+       FORMAT(PRODUCT.Product_List_Price, 2) AS List_Price,
        CASE
-           WHEN (PRODUCT.Product_List_Price - PRODUCT.Product_Cost) / PRODUCT.Product_List_Price >= 0.5 THEN 'High Margin'
-           WHEN (PRODUCT.Product_List_Price - PRODUCT.Product_Cost) / PRODUCT.Product_List_Price >= 0.3 THEN 'Medium Margin'
+           WHEN PRODUCT.Product_List_Price - PRODUCT.Product_Cost >= 40 THEN 'High Margin'
+           WHEN PRODUCT.Product_List_Price - PRODUCT.Product_Cost >= 20 THEN 'Medium Margin'
            ELSE 'Low Margin'
-       END AS Margin_Category
-FROM PRODUCT, CATEGORY, VENDOR
-WHERE PRODUCT.CATEGORY_Category_Id = CATEGORY.Category_Id
-AND PRODUCT.VENDOR_Vendor_Id = VENDOR.Vendor_Id
-AND PRODUCT.Parent_Product_Id IS NULL
+       END AS Margin_Label
+FROM PRODUCT
+WHERE PRODUCT.Parent_Product_Id IS NULL
 ORDER BY PRODUCT.Product_List_Price - PRODUCT.Product_Cost DESC;
 ```
 
 ![Query6](query6.png)
 
-Query 3 allows Northline managers to evaluate which products carry the strongest margins per unit sold. Since the company buys from external vendors at cost and sells at list price, knowing which items are most profitable helps guide decisions around promotions, reorders, and vendor negotiations.
+Query 3 allows Northline managers to quickly see which products are the most profitable per unit. Knowing this helps the business decide what to promote and prioritize when placing orders with vendors.
