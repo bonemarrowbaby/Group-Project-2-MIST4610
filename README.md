@@ -5,7 +5,7 @@
 **Group Name:** [Your Group Name]
 
 - Haylesh Fernandez
-- Zain 
+- Zain Naseer
 - Italia Roman
 - Alden Majors
 
