@@ -230,7 +230,7 @@ GROUP BY ORDERS.Orders_Ship_Country, PRODUCT.Product_Description
 ORDER BY ORDERS.Orders_Ship_Country, SUM(ORDERLINE.OrderLine_Quantity * ORDERLINE.OrderLine_Unit_Price * (1 - ORDERLINE.OrderLine_Discount)) DESC;
 ```
 
-> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query1](query1.png)`
+![Query1](gp2.q1.png)`
 
 
 Query 1 allows Northline managers to identify which products are driving the most revenue in each market. Since the company sells to both the US and Canada, understanding regional performance helps the business prioritize inventory, marketing efforts, and vendor reorders based on where each product is actually selling.
@@ -252,7 +252,7 @@ GROUP BY mgr.Employee_ref, emp.Employee_ref
 ORDER BY mgr.Employee_ref, Orders_Handled DESC;
 ```
 
-> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query2](query2.png)`
+![Query2](gp2.q2.png)`
 
 
 Query 2 allows Northline managers to see how each employee's order volume stacks up against coworkers who report to the same manager. This helps identify top performers and flag employees who may need additional support or coaching, while giving managers a fair peer comparison within their own teams.
@@ -265,17 +265,22 @@ Query 3 lists each vendor name, the number of distinct categories they supply, a
 
 ```sql
 SELECT VENDOR.Vendor_Nm,
-       COUNT(DISTINCT CATEGORY.Category_Id) AS Num_Categories,
-       GROUP_CONCAT(DISTINCT CATEGORY.Category_Nm ORDER BY CATEGORY.Category_Nm SEPARATOR ', ') AS Categories
-FROM VENDOR, PRODUCT, CATEGORY
-WHERE PRODUCT.VENDOR_Vendor_Id = VENDOR.Vendor_Id
-AND PRODUCT.CATEGORY_Category_Id = CATEGORY.Category_Id
-GROUP BY VENDOR.Vendor_Nm
-HAVING COUNT(DISTINCT CATEGORY.Category_Id) > 1
-ORDER BY Num_Categories DESC;
+       CATEGORY.Category_Nm,
+       VC.Num_Categories
+FROM VENDOR
+JOIN PRODUCT ON PRODUCT.VENDOR_Vendor_Id = VENDOR.Vendor_Id
+JOIN CATEGORY ON PRODUCT.CATEGORY_Category_Id = CATEGORY.Category_Id
+JOIN (
+    SELECT PRODUCT.VENDOR_Vendor_Id,
+           COUNT(DISTINCT PRODUCT.CATEGORY_Category_Id) AS Num_Categories
+    FROM PRODUCT
+    GROUP BY PRODUCT.VENDOR_Vendor_Id
+    HAVING COUNT(DISTINCT PRODUCT.CATEGORY_Category_Id) > 1)
+AS VC ON VC.VENDOR_Vendor_Id = VENDOR.Vendor_Id
+ORDER BY VC.Num_Categories DESC, VENDOR.Vendor_Nm;
 ```
 
-> 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query3](query3.png)`
+![Query3](gp3.q3.png)
 
 
 Query 3 allows Northline managers to identify which vendors are supplying products across multiple categories. These vendors represent key strategic relationships for the business and could be prioritized for volume negotiations or consolidated purchasing agreements.
@@ -296,7 +301,7 @@ GROUP BY CATEGORY.Category_Nm
 ORDER BY Returned_Lines DESC;
 ```
 
-![Query4](query4.png)
+![Query4](gp2.q4.png)
 
 Query 1 allows Northline managers to see which product categories are being returned the most. This helps identify potential quality or fulfillment issues so managers know where to focus their attention.
 
@@ -317,7 +322,7 @@ GROUP BY BUYER.Customer_Type
 ORDER BY Avg_Discount_Rate DESC;
 ```
 
-![Query5](query5.png)
+![Query5](gp2.q5.png)
 
 Query 2 allows Northline managers to see which customer types are receiving the highest average discounts. This helps ensure discount policies are being applied fairly and consistently across all customer segments.
 
@@ -340,6 +345,6 @@ FROM PRODUCT
 ORDER BY PRODUCT.Product_List_Price - PRODUCT.Product_Cost DESC;
 ```
 
-![Query6](query6.png)
+![Query6](gp2.q6.png)
 
 Query 3 allows Northline managers to quickly see which products are the most profitable per unit. Knowing this helps the business decide what to promote and prioritize when placing orders with vendors.
