@@ -231,18 +231,6 @@ ORDER BY ORDERS.Orders_Ship_Country, SUM(ORDERLINE.OrderLine_Quantity * ORDERLIN
 
 > 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query1](query1.png)`
 
-| Ship Country | Product | Total Revenue |
-|---|---|---|
-| CA | EchoWave Headphones | $814.39 |
-| CA | Summit Laptop Stand | $566.01 |
-| CA | Pulse USB-C Hub | $485.41 |
-| CA | Aurora Mechanical Keyboard | $337.46 |
-| CA | City Beanie | $309.72 |
-| US | Aurora Mechanical Keyboard | $1,099.53 |
-| US | EchoWave Headphones | $918.93 |
-| US | Halo Desk Lamp | $641.89 |
-| US | ClickStorm Gaming Mouse | $561.59 |
-| US | Northline Crewneck | $552.41 |
 
 Query 1 allows Northline managers to identify which products are driving the most revenue in each market. Since the company sells to both the US and Canada, understanding regional performance helps the business prioritize inventory, marketing efforts, and vendor reorders based on where each product is actually selling.
 
