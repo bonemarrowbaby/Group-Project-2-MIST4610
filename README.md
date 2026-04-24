@@ -253,20 +253,6 @@ ORDER BY mgr.Employee_ref, Orders_Handled DESC;
 
 > 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query2](query2.png)`
 
-| Manager | Employee | Orders Handled |
-|---|---|---|
-| EMC-M01 | EMC-401 | 13 |
-| EMC-M01 | EMC-402 | 6 |
-| EMC-M02 | EMC-403 | 12 |
-| EMC-M03 | EMC-501 | 18 |
-| EMC-M03 | EMC-502 | 8 |
-| EMU-M01 | EMU-102 | 13 |
-| EMU-M01 | EMU-101 | 4 |
-| EMU-M02 | EMU-103 | 8 |
-| EMU-M03 | EMU-202 | 19 |
-| EMU-M03 | EMU-201 | 14 |
-| EMU-M04 | EMU-302 | 12 |
-| EMU-M04 | EMU-301 | 10 |
 
 Query 2 allows Northline managers to see how each employee's order volume stacks up against coworkers who report to the same manager. This helps identify top performers and flag employees who may need additional support or coaching, while giving managers a fair peer comparison within their own teams.
 
@@ -290,13 +276,6 @@ ORDER BY Num_Categories DESC;
 
 > 📷 _Add your MySQL Workbench screenshot here — replace this line with:_ `![Query3](query3.png)`
 
-| Vendor | # Categories | Categories |
-|---|---|---|
-| Maple Supply | 4 | Accessories, Lifestyle, School, Tech |
-| Urban Source | 4 | Accessories, Desk Setup, Lifestyle, School |
-| Polar Tech | 3 | Accessories, Audio, Desk Setup |
-| Vendor North | 3 | Accessories, Desk Setup, Tech |
-| Northern Loom | 2 | Apparel, Lifestyle |
 
 Query 3 allows Northline managers to identify which vendors are supplying products across multiple categories. These vendors represent key strategic relationships for the business and could be prioritized for volume negotiations or consolidated purchasing agreements.
 
