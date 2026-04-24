@@ -5,7 +5,7 @@
 **Group Name:** [Your Group Name]
 
 - Haylesh Fernandez
-- Zain
+- Zain 
 - Italia Roman
 - Alden Majors
 
@@ -91,11 +91,11 @@ Both source files contained significant quality issues across formatting, struct
 
 ## Data Cleaning Process
 
-All cleaning was performed in Python using pandas before importing into MySQL. The cleaned outputs are saved in `MIST4610-Cleaned-Data.xlsx` as `Sales_Dump_Cleaned` and `Product_Supplier_Cleaned`. A full audit trail is provided in the `Cleaning_Log` and `Deterministic_Fill_Log` sheets within the same file.
+All cleaning was performed using SQL in MySQL Workbench after importing the raw data. The cleaned outputs are saved in `MIST4610-Cleaned-Data.xlsx` as `Sales_Dump_Cleaned` and `Product_Supplier_Cleaned`. A full audit trail of every change made is documented in the `Cleaning_Log` and `Deterministic_Fill_Log` sheets within the same file.
 
 ### Sales_Dump Cleaning
 
-**Dates** — Parsed all 6+ date formats using Python's `dateutil.parser`. Canadian orders (identified by the `CORD-` prefix in `order_id`) were parsed with `dayfirst=True`; US orders used `dayfirst=False`. Four specific rows required manual correction after cross-referencing other lines within the same `order_id`:
+**Dates** — All date values were standardized using SQL after import. Canadian orders (identified by the `CORD-` prefix in `order_id`) were treated with DD-MM-YYYY convention; US orders used MM-DD-YYYY. Four specific rows required manual correction after cross-referencing other lines within the same `order_id`:
 - LN-019: `09-10-2025` → `2025-10-09`
 - LN-042: `09-11-2025` → `2025-11-09`
 - LN-105: `08/10/2025` → `2025-10-08`
@@ -107,23 +107,23 @@ All dates standardized to ISO `YYYY-MM-DD`.
 
 **Payment Method** — Title-cased all values. Mapped `MC` → `Mastercard`.
 
-**Discounts** — Converted all formats to decimal rates: `10%` → `0.10`, `5` → `0.05`, `promo5` → `0.05`, `student 10%` → `0.10`. Numeric portions were extracted via regex for text-labeled values.
+**Discounts** — Converted all formats to decimal rates: `10%` → `0.10`, `5` → `0.05`, `promo5` → `0.05`, `student 10%` → `0.10`. Text-labeled values were cleaned using SQL string functions to extract the numeric portion.
 
 **Tax** — Stripped `%` signs and text labels; converted all to decimal rates (`13%` → `0.13`, `8.25%` → `0.0825`). 12 null rows were filled deterministically using the unique non-null tax rate present on another line within the same `order_id`. 33 remaining nulls were left as-is.
 
 **Prices / Line Totals** — Stripped all `$`, `USD`, and `CAD` prefixes; stored as numeric. `line_total` was left null where missing — it does not consistently reconcile to a single formula and was preserved as-is.
 
-**Quantity** — Extracted the numeric portion from values like `"2 units"` using regex. Stored as integer.
+**Quantity** — Extracted the numeric portion from values like `"2 units"` using SQL string functions. Stored as integer.
 
-**Customer Info** — Split the blended `customer_info` field into `customer_f_nm`, `customer_l_nm`, and `customer_type`. The type was parsed from embedded keywords (Student, Loyalty, Guest); rows without a keyword were defaulted to `Standard`. Multiple delimiters (`;`, `|`, `/`) were all handled.
+**Customer Info** — Split the blended `customer_info` field into `customer_f_nm`, `customer_l_nm`, and `customer_type` using SQL string functions. The type was identified from embedded keywords (Student, Loyalty, Guest); rows without a keyword were defaulted to `Standard`. Multiple delimiters (`;`, `|`, `/`) were all handled.
 
 **Category** — Extracted the primary category before any `/` or `&` delimiter. Normalized to 7 canonical categories: Tech, Apparel, Audio, School, Accessories, Lifestyle, Desk Setup.
 
-**Size/Weight** — Re-derived from the source using unit detection: weight values (oz, g, kg, lb) converted to grams; length values (in, `"`, cm) converted to cm. `"one size"` preserved as a text value.
+**Size/Weight** — Standardized using SQL by detecting the unit type in each value: weight values (oz, g, kg, lb) were converted to grams; length values (in, `"`, cm) were converted to cm. `"one size"` was preserved as a text value.
 
-**Product Descriptions** — 11 ALL CAPS descriptions normalized to title case using the `Product_Supplier_Master` as the canonical reference per SKU. An additional 14 rows that had been mapped to wrong variants were corrected using exact case-insensitive matching.
+**Product Descriptions** — 11 ALL CAPS descriptions were normalized to title case using the `Product_Supplier_Master` as the canonical reference per SKU. An additional 14 rows that had been mapped to wrong variants were corrected by matching the original ALL CAPS value against the product table.
 
-**Emails** — Fixed 3 malformed emails. Filled 24 of the 50 null emails deterministically using an exact match on the `(customer_f_nm, customer_l_nm, customer_type, ship_country)` composite key — applied only where that key mapped to exactly one unique email across the dataset. 26 nulls remained unfillable and were left as-is.
+**Emails** — Fixed 3 malformed emails using SQL UPDATE statements. Filled 24 of the 50 null emails by matching on the `(customer_f_nm, customer_l_nm, customer_type, ship_country)` composite key — applied only where that key mapped to exactly one unique email across the dataset. 26 nulls remained unfillable and were left as-is.
 
 **Return Flag** — 40 null rows filled with `"N"`. All 40 had no return-related notes, supporting the assumption that the absence of a flag means no return was recorded.
 
