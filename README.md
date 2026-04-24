@@ -1,5 +1,3 @@
-[README (12).md](https://github.com/user-attachments/files/27036972/README.12.md)
-
 # Northline Outfitters — Retail Data Cleanup, Modeling, and SQL
 
 **MIST 4610 | Group Project 2**
