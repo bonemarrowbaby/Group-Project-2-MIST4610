@@ -280,7 +280,7 @@ AS VC ON VC.VENDOR_Vendor_Id = VENDOR.Vendor_Id
 ORDER BY VC.Num_Categories DESC, VENDOR.Vendor_Nm;
 ```
 
-![Query3](gp3.q3.png)
+![Query3](gp2.q3.png)
 
 
 Query 3 allows Northline managers to identify which vendors are supplying products across multiple categories. These vendors represent key strategic relationships for the business and could be prioritized for volume negotiations or consolidated purchasing agreements.
